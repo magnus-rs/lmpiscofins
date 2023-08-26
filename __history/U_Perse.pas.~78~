@@ -1,0 +1,292 @@
+unit U_Perse;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, System.UITypes, ACBrEPCBlocos,
+  Vcl.StdCtrls, Vcl.Mask, Vcl.ExtCtrls;
+
+type
+  TFRM_Perse = class(TForm)
+    Button1: TButton;
+    Label1: TLabel;
+    Label2: TLabel;
+    Edit1: TEdit;
+    Edit2: TEdit;
+    Label3: TLabel;
+    Edit3: TEdit;
+    GroupBox1: TGroupBox;
+    Cumulativo: TCheckBox;
+    NaoCumulativo: TCheckBox;
+    Creditos: TCheckBox;
+    Bevel1: TBevel;
+    Label4: TLabel;
+    Label5: TLabel;
+    Edit4: TEdit;
+    Edit5: TEdit;
+    procedure Button1Click(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  FRM_Perse: TFRM_Perse;
+
+implementation
+
+{$R *.dfm}
+
+uses U_Principal;
+
+procedure TFRM_Perse.Button1Click(Sender: TObject);
+var
+  i,j,k: Integer;
+  total_cumulativo, total_nao_cumulativo: Double;
+  Total_creditos_pis, Total_creditos_cofins: Double;
+begin
+ total_cumulativo := 0.00;
+ total_nao_cumulativo := 0.00;
+ Total_creditos_pis := 0.00;
+ Total_creditos_cofins := 0.00;
+// Converte Serviços Prestados para Alíquota Zero CST 06----------------------------------------
+ if Cumulativo.Checked then begin
+  with FRM_Principal.SpedPC.Bloco_A.RegistroA001 do begin
+   for i := 0 to RegistroA010.Count -1 do begin
+    with RegistroA010.Items[i] do begin
+     for j := 0 to RegistroA100.Count -1 do begin
+      with RegistroA100.Items[j] do begin
+       if DT_DOC >= StrToDate('18/03/2022') then begin
+        VL_BC_PIS  := 0;
+        VL_PIS     := 0;
+        VL_BC_COFINS := 0;
+        VL_COFINS    := 0;
+        for k := 0 to RegistroA170.Count -1 do begin
+         with RegistroA170.Items[k] do begin
+          CST_PIS   := stpisAliquotaZero;
+          VL_BC_PIS := 0;
+          ALIQ_PIS  := 0;
+          VL_PIS    := 0;
+          CST_COFINS   := stcofinsAliquotaZero;
+          VL_BC_COFINS := 0;
+          ALIQ_COFINS  := 0;
+          VL_COFINS    := 0;
+          Total_cumulativo := (Total_cumulativo + VL_ITEM);
+         end;
+        end;
+       end;
+      end;
+     end;
+    end;
+   end;
+  end;
+// Lança os Registros M400 (PIS)  para o CST 06 de Serviços Prestados -------------------
+  with FRM_Principal.SpedPC.Bloco_M.RegistroM400New do begin
+   CST_PIS := stpisAliquotaZero;
+   VL_TOT_REC := Total_Cumulativo;
+   COD_CTA := '3.01.01.01.001';
+   RegistroM410.New;
+   with registroM410.Items[0] do begin
+    NAT_REC := '920';
+    VL_REC  := Total_Cumulativo;
+    COD_CTA := '3.01.01.01.001';
+   end;
+  end;
+// Lança os Registros M800 (COFINS) para o CST 06 de Serviços Prestados --------------------
+  with FRM_Principal.SpedPC.Bloco_M.RegistroM800New do begin
+   CST_COFINS := stcofinsAliquotaZero;
+   VL_TOT_REC := Total_Cumulativo;
+   COD_CTA := '3.01.01.01.001';
+   RegistroM810.New;
+   with registroM810.Items[0] do begin
+    NAT_REC := '920';
+    VL_REC  := Total_Cumulativo;
+    COD_CTA := '3.01.01.01.001';
+   end;
+  end;
+ end;
+// Converte Vendas A&B para Alíquota Zero CST 06----------------------------------------
+ if NaoCumulativo.Checked then begin
+  with FRM_Principal.SpedPC.Bloco_C.RegistroC001 do begin
+   for i := 0 to RegistroC010.Count -1 do begin
+    with RegistroC010.Items[i] do begin
+     for j := 0 to RegistroC100.Count -1 do begin
+      with RegistroC100.Items[j] do begin
+       if DT_DOC >= StrToDate('18/03/2022') then begin
+        if (IND_EMIT = edEmissaoPropria) then begin
+         VL_PIS    := 0;
+         VL_COFINS := 0;
+         for k := 0 to RegistroC170.Count -1 do begin
+          with RegistroC170.Items[k] do begin
+           if (CST_PIS = stpisValorAliquotaNormal) then begin
+            CST_PIS       := stpisAliquotaZero;
+            VL_BC_PIS     := 0;
+            ALIQ_PIS_PERC := 0;
+            VL_PIS        := 0;
+            CST_COFINS       := stcofinsAliquotaZero;
+            VL_BC_COFINS     := 0;
+            ALIQ_COFINS_PERC := 0;
+            VL_COFINS        := 0;
+            Total_nao_cumulativo := (Total_nao_cumulativo + VL_ITEM);
+           end;
+          end;
+         end;
+         for k := 0 to RegistroC175.Count -1 do begin
+          with RegistroC175.Items[k] do begin
+           if (CST_PIS = stpisValorAliquotaNormal) then begin
+            CST_PIS      := stpisAliquotaZero;
+            VL_BC_PIS    := 0;
+            ALIQ_PIS     := 0;
+            VL_PIS       := 0;
+            CST_COFINS   := stcofinsAliquotaZero;
+            VL_BC_COFINS := 0;
+            ALIQ_COFINS  := 0;
+            VL_COFINS    := 0;
+            Total_nao_cumulativo := (Total_nao_cumulativo + VL_OPR);
+           end;
+          end;
+         end;
+        end;
+       end;
+      end;
+     end;
+    end;
+   end;
+  end;
+// Lança os Registros M400 (PIS)  para o CST 06 de Vendas do A&B -------------------
+  with FRM_Principal.SpedPC.Bloco_M.RegistroM400New do begin
+   CST_PIS := stpisAliquotaZero;
+   VL_TOT_REC := Total_Nao_Cumulativo;
+   COD_CTA := '3.01.01.02.001';
+   RegistroM410.New;
+   with registroM410.Items[0] do begin
+    NAT_REC := '920';
+    VL_REC  := Total_Nao_Cumulativo;
+    COD_CTA := '3.01.01.02.001';
+   end;
+  end;
+// Lança os Registros M800 (COFINS) para o CST 06 de Vendas do A&B --------------------
+  with FRM_Principal.SpedPC.Bloco_M.RegistroM800New do begin
+   CST_COFINS := stcofinsAliquotaZero;
+   VL_TOT_REC := Total_Nao_Cumulativo;
+   COD_CTA := '3.01.01.02.001';
+   RegistroM810.New;
+   with registroM810.Items[0] do begin
+    NAT_REC := '920';
+    VL_REC  := Total_Nao_Cumulativo;
+    COD_CTA := '3.01.01.02.001';
+   end;
+  end;
+ end;
+// Zeramento dos Créditos por entrada de mercadorias dos CST 50 e 60 -------------------
+ if Creditos.Checked then begin
+  with FRM_Principal.SpedPC.Bloco_C.RegistroC001 do begin
+   for i := 0 to RegistroC010.Count -1 do begin
+    with RegistroC010.Items[i] do begin
+     for j := 0 to RegistroC100.Count -1 do begin
+      with RegistroC100.Items[j] do begin
+       if DT_DOC >= StrToDate('18/03/2022') then begin
+        if (IND_EMIT = edTerceiros) then begin
+         VL_PIS    := 0;
+         VL_COFINS := 0;
+         for k := 0 to RegistroC170.Count -1 do begin
+          with RegistroC170.Items[k] do begin
+           if (CST_PIS = stpisOperCredExcRecTribMercInt) or (CST_PIS = stpisCredPresAquiExcRecTribMercInt) then begin
+            Total_creditos_pis := Total_creditos_pis + VL_PIS;
+            CST_PIS       := stpisOperAquiSemDirCredito;
+            VL_BC_PIS     := 0;
+            ALIQ_PIS_PERC := 0;
+            VL_PIS        := 0;
+            Total_creditos_cofins := Total_creditos_cofins + VL_COFINS;
+            CST_COFINS       := stcofinsOperAquiSemDirCredito;
+            VL_BC_COFINS     := 0;
+            ALIQ_COFINS_PERC := 0;
+            VL_COFINS        := 0;
+           end;
+          end;
+         end;
+        end;
+       end;
+      end;
+     end;
+    end;
+   end;
+  end;
+// Retirada do Crédito de Energia Elétrica CST 50 ----------------------------------
+  with FRM_Principal.SpedPC.Bloco_C.RegistroC001 do begin
+   for I := 0 to RegistroC010.Count - 1 do begin
+    with RegistroC010.Items[I] do begin
+     for J := 0 to RegistroC500.Count - 1 do begin
+      with RegistroC500.Items[J] do begin
+       VL_PIS    := 0.00;
+       VL_COFINS := 0.00;
+       with RegistroC501.Items[0] do begin
+        Total_creditos_pis := Total_creditos_pis + VL_PIS;
+        CST_PIS   := stpisOperAquiSemDirCredito;
+        VL_BC_PIS := 0.00;
+        ALIQ_PIS  := 0.00 ;
+        VL_PIS    := 0.00;
+       end;
+       with RegistroC505.Items[0] do begin
+        Total_creditos_cofins := Total_creditos_cofins + VL_COFINS;
+        CST_COFINS   := stcofinsOperAquiSemDirCredito;
+        VL_BC_COFINS := 0.00;
+        ALIQ_COFINS  := 0.00;
+        VL_COFINS    := 0.00;
+       end;
+      end;
+     end;
+    end;
+   end;
+  end;
+// Retirada do Crédito de Depreciação e Amortização, Retenção de Órgãos Públicos CST 50 ----------------------------------
+  with FRM_Principal.SpedPC.Bloco_F do begin
+   with RegistroF001.RegistroF010.Items[0] do begin
+    for i := 0 to RegistroF120.Count -1 do begin
+     Total_creditos_pis := Total_creditos_pis + RegistroF120.Items[i].VL_PIS;
+     Total_creditos_cofins := Total_creditos_cofins + RegistroF120.Items[i].VL_COFINS;
+    end;
+    RegistroF120.Clear;
+    RegistroF600.Clear;
+   end;
+  end;
+  with FRM_Principal.SpedPC.Bloco_M do begin
+   with RegistroM001 do begin
+    RegistroM200.VL_RET_CUM := 0.00;
+    RegistroM600.VL_RET_CUM := 0.00;
+   end;
+  end;
+// Remove créditos sobre locações (maquinetas) CST 50 ---------------------------------
+  with FRM_Principal.SpedPC.Bloco_F do begin
+   with RegistroF001 do begin
+    with RegistroF010.Items[0] do begin
+     j := RegistroF100.Count -1;
+     i := 0;
+     while i <= j do begin
+      if RegistroF100.Items[i].IND_OPER = indRepCustosDespesasEncargos then begin
+       Total_creditos_pis := Total_creditos_pis + RegistroF100.Items[i].VL_PIS;
+       Total_creditos_cofins := Total_creditos_cofins + RegistroF100.Items[i].VL_COFINS;
+       RegistroF100.Delete(i);
+       i:=i-1;
+      end;
+      i:=i+1;
+      if i > RegistroF100.Count -1 then
+       break;
+     end;
+    end;
+   end;
+  end;
+
+ end;
+ MessageDlg('Informações Atualizadas!!!!',mtInformation,[mbok],0);
+ Edit1.text := FormatFloat('#,,,0.00',Total_Cumulativo);
+ Edit2.text := FormatFloat('#,,,0.00',Total_Nao_Cumulativo);
+ Edit3.text := FormatFloat('#,,,0.00',Total_Cumulativo + Total_Nao_Cumulativo);
+ Edit4.Text := FormatFloat('#,,,0.00',Total_creditos_pis);
+ Edit5.Text := FormatFloat('#,,,0.00',Total_creditos_cofins);
+ Button1.Enabled := False;
+end;
+
+end.

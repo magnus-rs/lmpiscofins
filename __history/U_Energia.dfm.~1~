@@ -1,0 +1,345 @@
+object FRM_Energia: TFRM_Energia
+  Left = 0
+  Top = 0
+  BorderStyle = bsDialog
+  Caption = 'Energia El'#233'trica (CST50) - Registro C500 - Entrada'
+  ClientHeight = 167
+  ClientWidth = 751
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  OldCreateOrder = False
+  Position = poDesktopCenter
+  OnShow = FormShow
+  PixelsPerInch = 96
+  TextHeight = 13
+  object Panel1: TPanel
+    Left = 0
+    Top = 0
+    Width = 751
+    Height = 167
+    Align = alClient
+    BevelOuter = bvNone
+    BorderStyle = bsSingle
+    Ctl3D = False
+    ParentCtl3D = False
+    TabOrder = 0
+    object DBGrid1: TDBGrid
+      Left = 0
+      Top = 25
+      Width = 749
+      Height = 121
+      Align = alClient
+      DataSource = DS2
+      TabOrder = 0
+      TitleFont.Charset = DEFAULT_CHARSET
+      TitleFont.Color = clWindowText
+      TitleFont.Height = -11
+      TitleFont.Name = 'Tahoma'
+      TitleFont.Style = []
+      Columns = <
+        item
+          Expanded = False
+          FieldName = 'idEstabelecimento'
+          Visible = True
+        end
+        item
+          Expanded = False
+          FieldName = 'Empresa'
+          Width = 100
+          Visible = True
+        end
+        item
+          Expanded = False
+          FieldName = 'ValorTotal'
+          Width = 100
+          Visible = True
+        end
+        item
+          Expanded = False
+          FieldName = 'Rateio'
+          Title.Caption = '% Rateio'
+          Width = 50
+          Visible = True
+        end
+        item
+          Expanded = False
+          FieldName = 'BaseCalculo'
+          Title.Caption = 'Base de C'#225'lculo'
+          Width = 90
+          Visible = True
+        end
+        item
+          Expanded = False
+          FieldName = 'PercentPis'
+          Title.Caption = '% Pis'
+          Width = 50
+          Visible = True
+        end
+        item
+          Expanded = False
+          FieldName = 'ValorPis'
+          Width = 90
+          Visible = True
+        end
+        item
+          Expanded = False
+          FieldName = 'PercentCofins'
+          Title.Caption = '% Cofins'
+          Width = 50
+          Visible = True
+        end
+        item
+          Expanded = False
+          FieldName = 'ValorCofins'
+          Width = 90
+          Visible = True
+        end>
+    end
+    object StatusBar1: TStatusBar
+      Left = 0
+      Top = 146
+      Width = 749
+      Height = 19
+      Panels = <
+        item
+          Width = 150
+        end
+        item
+          Alignment = taCenter
+          Width = 200
+        end
+        item
+          Alignment = taCenter
+          Width = 200
+        end
+        item
+          Alignment = taCenter
+          Width = 200
+        end>
+    end
+    object Panel5: TPanel
+      Left = 0
+      Top = 0
+      Width = 749
+      Height = 25
+      Align = alTop
+      Alignment = taLeftJustify
+      BevelOuter = bvNone
+      TabOrder = 2
+      object Label1: TLabel
+        Left = 16
+        Top = 5
+        Width = 93
+        Height = 13
+        Caption = 'M'#234's de Refer'#234'ncia:'
+      end
+      object CB_MesRef: TComboBox
+        Left = 120
+        Top = 2
+        Width = 145
+        Height = 21
+        TabOrder = 0
+        Text = 'CB_MesRef'
+        OnChange = CB_MesRefChange
+      end
+    end
+  end
+  object FDQ_MesRef: TFDQuery
+    Active = True
+    Connection = DataModule1.FDConnection1
+    SQL.Strings = (
+      'select * from Planilhas')
+    Left = 32
+    Top = 72
+    object FDQ_MesRefChave: TFDAutoIncField
+      FieldName = 'Chave'
+      Origin = 'Chave'
+      ProviderFlags = [pfInWhere, pfInKey]
+      ReadOnly = True
+    end
+    object FDQ_MesRefMes_Ref: TStringField
+      FieldName = 'Mes_Ref'
+      Origin = 'Mes_Ref'
+      Required = True
+      EditMask = '!99/0000;0;_'
+      Size = 6
+    end
+  end
+  object FDQ_empresa: TFDQuery
+    Active = True
+    Connection = DataModule1.FDConnection1
+    SQL.Strings = (
+      'select * from estabelecimentos')
+    Left = 209
+    Top = 72
+    object FDQ_empresaChave: TFDAutoIncField
+      FieldName = 'Chave'
+      Origin = 'Chave'
+      ProviderFlags = [pfInWhere, pfInKey]
+      ReadOnly = True
+    end
+    object FDQ_empresaCNPJ: TStringField
+      FieldName = 'CNPJ'
+      Origin = 'CNPJ'
+      Required = True
+      Size = 14
+    end
+    object FDQ_empresaRazao_Social: TStringField
+      FieldName = 'Razao_Social'
+      Origin = 'Razao_Social'
+      Required = True
+      Size = 100
+    end
+    object FDQ_empresaDescricao: TStringField
+      FieldName = 'Descricao'
+      Origin = 'Descricao'
+      Required = True
+      Size = 100
+    end
+  end
+  object DS1: TDataSource
+    DataSet = FDQ_empresa
+    Left = 257
+    Top = 72
+  end
+  object FDQ_Energia: TFDQuery
+    Active = True
+    BeforePost = FDQ_EnergiaBeforePost
+    AfterPost = FDQ_EnergiaAfterPost
+    AfterDelete = FDQ_EnergiaAfterDelete
+    Connection = DataModule1.FDConnection1
+    Transaction = FDTransaction1
+    UpdateTransaction = FDTransaction1
+    UpdateOptions.AutoIncFields = 'Chave'
+    UpdateObject = FDUpdateSQL1
+    SQL.Strings = (
+      'select * from energia')
+    Left = 488
+    Top = 80
+    object FDQ_EnergiaChave: TFDAutoIncField
+      FieldName = 'Chave'
+      Origin = 'Chave'
+      ProviderFlags = [pfInWhere, pfInKey]
+      ReadOnly = True
+    end
+    object FDQ_EnergiaidEstabelecimento: TIntegerField
+      FieldName = 'idEstabelecimento'
+      Origin = 'idEstabelecimento'
+      Required = True
+    end
+    object FDQ_EnergiaEmpresa: TStringField
+      FieldKind = fkLookup
+      FieldName = 'Empresa'
+      LookupDataSet = FDQ_empresa
+      LookupKeyFields = 'Chave'
+      LookupResultField = 'Descricao'
+      KeyFields = 'idEstabelecimento'
+      Size = 100
+      Lookup = True
+    end
+    object FDQ_EnergiaidMesRef: TIntegerField
+      FieldName = 'idMesRef'
+      Origin = 'idMesRef'
+      Required = True
+    end
+    object FDQ_EnergiaValorTotal: TFloatField
+      FieldName = 'ValorTotal'
+      Origin = 'ValorTotal'
+      Required = True
+      OnChange = FDQ_EnergiaValorTotalChange
+      currency = True
+    end
+    object FDQ_EnergiaRateio: TFloatField
+      FieldName = 'Rateio'
+      Origin = 'Rateio'
+      Required = True
+      OnChange = FDQ_EnergiaRateioChange
+    end
+    object FDQ_EnergiaBaseCalculo: TFloatField
+      FieldName = 'BaseCalculo'
+      Origin = 'BaseCalculo'
+      Required = True
+      OnChange = FDQ_EnergiaBaseCalculoChange
+      currency = True
+    end
+    object FDQ_EnergiaPercentPis: TFloatField
+      FieldName = 'PercentPis'
+      Origin = 'PercentPis'
+      Required = True
+    end
+    object FDQ_EnergiaValorPis: TFloatField
+      FieldName = 'ValorPis'
+      Origin = 'ValorPis'
+      Required = True
+      currency = True
+    end
+    object FDQ_EnergiaPercentCofins: TFloatField
+      FieldName = 'PercentCofins'
+      Origin = 'PercentCofins'
+      Required = True
+    end
+    object FDQ_EnergiaValorCofins: TFloatField
+      FieldName = 'ValorCofins'
+      Origin = 'ValorCofins'
+      Required = True
+      currency = True
+    end
+  end
+  object FDTransaction1: TFDTransaction
+    Connection = DataModule1.FDConnection1
+    Left = 568
+    Top = 81
+  end
+  object DS2: TDataSource
+    DataSet = FDQ_Energia
+    Left = 640
+    Top = 81
+  end
+  object FDUpdateSQL1: TFDUpdateSQL
+    Connection = DataModule1.FDConnection1
+    InsertSQL.Strings = (
+      'INSERT INTO LMPISCOFINSDBA.dbo.Energia'
+      '(idEstabelecimento, idMesRef, ValorTotal, Rateio, '
+      '  BaseCalculo, PercentPis, ValorPis, PercentCofins, '
+      '  ValorCofins)'
+      
+        'VALUES (:NEW_idEstabelecimento, :NEW_idMesRef, :NEW_ValorTotal, ' +
+        ':NEW_Rateio, '
+      
+        '  :NEW_BaseCalculo, :NEW_PercentPis, :NEW_ValorPis, :NEW_Percent' +
+        'Cofins, '
+      '  :NEW_ValorCofins);'
+      'SELECT SCOPE_IDENTITY() AS Chave')
+    ModifySQL.Strings = (
+      'UPDATE LMPISCOFINSDBA.dbo.Energia'
+      
+        'SET idEstabelecimento = :NEW_idEstabelecimento, idMesRef = :NEW_' +
+        'idMesRef, '
+      
+        '  ValorTotal = :NEW_ValorTotal, Rateio = :NEW_Rateio, BaseCalcul' +
+        'o = :NEW_BaseCalculo, '
+      '  PercentPis = :NEW_PercentPis, ValorPis = :NEW_ValorPis, '
+      
+        '  PercentCofins = :NEW_PercentCofins, ValorCofins = :NEW_ValorCo' +
+        'fins'
+      'WHERE Chave = :OLD_Chave')
+    DeleteSQL.Strings = (
+      'DELETE FROM LMPISCOFINSDBA.dbo.Energia'
+      'WHERE Chave = :OLD_Chave')
+    FetchRowSQL.Strings = (
+      
+        'SELECT Chave, idEstabelecimento, idMesRef, ValorTotal, Rateio, B' +
+        'aseCalculo, '
+      '  PercentPis, ValorPis, PercentCofins, ValorCofins'
+      'FROM ('
+      'select * from lmpiscofinsdba.dbo.Energia'
+      ') '
+      'WHERE Chave = :OLD_Chave')
+    Left = 416
+    Top = 80
+  end
+end

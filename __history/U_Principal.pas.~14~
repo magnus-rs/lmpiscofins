@@ -1,0 +1,284 @@
+unit U_Principal;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.UITypes, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Menus, System.IniFiles, Data.DB,
+  FireDAC.Stan.Intf, FireDAC.Stan.Option, FireDAC.Stan.Param,
+  FireDAC.Stan.Error, FireDAC.DatS, FireDAC.Phys.Intf, FireDAC.DApt.Intf,
+  FireDAC.Stan.Async, FireDAC.DApt, FireDAC.Comp.DataSet, FireDAC.Comp.Client,
+  Vcl.Grids, Vcl.DBGrids, Vcl.ComCtrls, Vcl.Imaging.pngimage, Vcl.ExtCtrls,
+  ACBrSpedPisCofins, ACBrBase, ACBrEPCImportar, ACBrEFDBlocos;
+
+type
+  TFRM_Principal = class(TForm)
+    MenuPrincipal: TMainMenu;
+    Cadastros1: TMenuItem;
+    Planilhas1: TMenuItem;
+    Estabelecimentos1: TMenuItem;
+    N1: TMenuItem;
+    Sair1: TMenuItem;
+    StatusBar1: TStatusBar;
+    Participantes1: TMenuItem;
+    ContasContabeis1: TMenuItem;
+    EnergiaEeltrica1: TMenuItem;
+    LocacaoTerraco1: TMenuItem;
+    LocacoesEquipamentos1: TMenuItem;
+    DepreciacaoeAmortizacao1: TMenuItem;
+    ReceitasFinanceiras1: TMenuItem;
+    OrgaosPublicosRetencao1: TMenuItem;
+    Lanamentos1: TMenuItem;
+    ArquivoSpedContribuio1: TMenuItem;
+    Importar1: TMenuItem;
+    Importar2: TMenuItem;
+    Procedimentos1: TMenuItem;
+    InserirEnergiaEltrica1: TMenuItem;
+    InserirLocaoTerrao1: TMenuItem;
+    InserirLocaesEquipamentos1: TMenuItem;
+    InserirReceitasFinanceiras1: TMenuItem;
+    InserirDepreciaoeAmortizao1: TMenuItem;
+    InserirRetenesdergosPblicos1: TMenuItem;
+    N4: TMenuItem;
+    Image1: TImage;
+    OrgosPblicos1: TMenuItem;
+    PCImporta: TACBrSpedPCImportar;
+    SpedPC: TACBrSPEDPisCofins;
+    OpenDlg: TOpenDialog;
+    FecharSped1: TMenuItem;
+    N2: TMenuItem;
+    PERSE1: TMenuItem;
+    ExcluirCFOP: TMenuItem;
+    Correcoes1: TMenuItem;
+    procedure Sair1Click(Sender: TObject);
+    procedure Estabelecimentos1Click(Sender: TObject);
+    procedure Participantes1Click(Sender: TObject);
+    procedure ContasContabeis1Click(Sender: TObject);
+    procedure Planilhas1Click(Sender: TObject);
+    procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+    procedure EnergiaEeltrica1Click(Sender: TObject);
+    procedure LocacaoTerraco1Click(Sender: TObject);
+    procedure LocacoesEquipamentos1Click(Sender: TObject);
+    procedure ReceitasFinanceiras1Click(Sender: TObject);
+    procedure DepreciacaoeAmortizacao1Click(Sender: TObject);
+    procedure OrgosPblicos1Click(Sender: TObject);
+    procedure OrgaosPublicosRetencao1Click(Sender: TObject);
+    procedure Importar1Click(Sender: TObject);
+    procedure FecharSped1Click(Sender: TObject);
+    procedure Importar2Click(Sender: TObject);
+    procedure InserirEnergiaEltrica1Click(Sender: TObject);
+    procedure InserirLocaoTerrao1Click(Sender: TObject);
+    procedure InserirLocaesEquipamentos1Click(Sender: TObject);
+    procedure InserirDepreciaoeAmortizao1Click(Sender: TObject);
+    procedure InserirReceitasFinanceiras1Click(Sender: TObject);
+    procedure InserirRetenesdergosPblicos1Click(Sender: TObject);
+    procedure PERSE1Click(Sender: TObject);
+    procedure ExcluirCFOPClick(Sender: TObject);
+    procedure Correcoes1Click(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  FRM_Principal: TFRM_Principal;
+
+implementation
+
+{$R *.dfm}
+
+uses U_DataModule, U_Estabelecimentos, U_Participantes, U_Contas, U_Planilhas,
+  U_Energia, U_Terraco, U_Locacoes, U_ReceitasFin, U_DeprecAmort, U_Orgaos,
+  U_Retencao, U_L_Energia, U_Lanca_Terraco, U_Lanca_Maquinas, U_Lanca_Deprec,
+  U_Lanca_Receitas, U_Lanca_Retencao, U_Perse, U_LimpaCFOP, U_Correções;
+
+procedure TFRM_Principal.ContasContabeis1Click(Sender: TObject);
+begin
+   FRM_Contas.ShowModal;
+end;
+
+procedure TFRM_Principal.Correcoes1Click(Sender: TObject);
+begin
+ if importar1.Enabled then
+   MessageDlg('Dados não encontrados, importe o arquivo do SPED e tente novamente.',mtInformation,[mbok],0)
+ else
+   FRM_Correcoes.Show;
+end;
+
+procedure TFRM_Principal.DepreciacaoeAmortizacao1Click(Sender: TObject);
+begin
+   FRM_DeprecAmort.ShowModal;
+end;
+
+procedure TFRM_Principal.EnergiaEeltrica1Click(Sender: TObject);
+begin
+ FRM_Energia.ShowModal;
+end;
+
+procedure TFRM_Principal.Estabelecimentos1Click(Sender: TObject);
+begin
+   FRM_Estabelecimentos.ShowModal;
+end;
+
+procedure TFRM_Principal.ExcluirCFOPClick(Sender: TObject);
+begin
+ if importar1.Enabled then
+   MessageDlg('Dados não encontrados, importe o arquivo do SPED e tente novamente.',mtInformation,[mbok],0)
+ else
+  FRM_LimpaCFOP.Show;
+end;
+
+procedure TFRM_Principal.FecharSped1Click(Sender: TObject);
+begin
+   If MessageDlg('Você tem certeza que deseja fechar o arquivo?',mtConfirmation,[mbyes,mbno],0)=mryes then
+     begin
+       FecharSped1.Enabled := False;
+       Importar2.Enabled := False;
+       Importar1.Enabled := True;
+       SPEDPC.LimpaRegistros;
+       StatusBar1.Panels[0].Text := 'Empresa: ';
+       StatusBar1.Panels[1].Text := '';
+       StatusBar1.Panels[2].Text := '';
+       StatusBar1.Panels[3].Text := 'Arquivo: ';
+     end;
+
+end;
+
+procedure TFRM_Principal.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+begin
+   If MessageDlg('Você tem certeza que deseja sair?',mtConfirmation,[mbyes,mbno],0)=mrno then
+     CanClose := False;
+end;
+
+procedure TFRM_Principal.Importar1Click(Sender: TObject);
+begin
+  if OpenDlg.Execute then
+  begin
+    PCImporta.Arquivo := OpenDlg.FileName;
+    PCImporta.Importar;
+    StatusBar1.Panels[0].Text := 'Empresa: ' + SPEDPC.Bloco_0.Registro0000.CNPJ + ' - ' + SPEDPC.Bloco_0.Registro0000.NOME;
+    StatusBar1.Panels[1].Text :=  DateToStr(SPEDPC.Bloco_0.Registro0000.DT_INI);
+    StatusBar1.Panels[2].Text :=  DateToStr(SPEDPC.Bloco_0.Registro0000.DT_FIN);
+    StatusBar1.Panels[3].Text := 'Arquivo: ' + ExtractFileName(PCImporta.Arquivo);
+    FecharSped1.Enabled := True;
+    Importar2.Enabled := True;
+    Importar1.Enabled := False;
+
+  end;
+end;
+
+procedure TFRM_Principal.Importar2Click(Sender: TObject);
+begin
+If MessageDlg('Comfirma a exportação do arquivo?',mtConfirmation,[mbyes,mbno],0)=mryes then
+  if OpenDlg.Execute then
+  begin
+    SPEDPC.Arquivo := ExtractFileName(OpenDlg.FileName);
+    SPEDPC.Path := ExtractFileDir(OpenDlg.FileName);
+    SPEDPC.DT_INI := SPEDPC.Bloco_0.Registro0000.DT_INI;
+    SPEDPC.DT_FIN := SPEDPC.Bloco_0.Registro0000.DT_FIN;
+    SPEDPC.SaveFileTXT;
+    FecharSped1.Enabled := True;
+    Importar2.Enabled := False;
+    Importar1.Enabled := False;
+  end;
+end;
+
+procedure TFRM_Principal.InserirDepreciaoeAmortizao1Click(Sender: TObject);
+begin
+ if importar1.Enabled then
+   MessageDlg('Dados não encontrados, importe o arquivo do SPED e tente novamente.',mtInformation,[mbok],0)
+ else
+  FRM_Lanca_Deprec.Show;
+end;
+
+procedure TFRM_Principal.InserirEnergiaEltrica1Click(Sender: TObject);
+begin
+ if importar1.Enabled then
+   MessageDlg('Dados não encontrados, importe o arquivo do SPED e tente novamente.',mtInformation,[mbok],0)
+ else
+  FRM_Energia_Lancamento.Show;
+end;
+
+procedure TFRM_Principal.InserirLocaesEquipamentos1Click(Sender: TObject);
+begin
+ if importar1.Enabled then
+   MessageDlg('Dados não encontrados, importe o arquivo do SPED e tente novamente.',mtInformation,[mbok],0)
+ else
+   FRM_Lanca_Maquinas.Show;
+end;
+
+procedure TFRM_Principal.InserirLocaoTerrao1Click(Sender: TObject);
+begin
+ if importar1.Enabled then
+   MessageDlg('Dados não encontrados, importe o arquivo do SPED e tente novamente.',mtInformation,[mbok],0)
+ else
+   FRM_Lanca_Terraco.Show;
+end;
+
+procedure TFRM_Principal.InserirReceitasFinanceiras1Click(Sender: TObject);
+begin
+ if importar1.Enabled then
+   MessageDlg('Dados não encontrados, importe o arquivo do SPED e tente novamente.',mtInformation,[mbok],0)
+ else
+   FRM_Lanca_Receitas.Show;
+end;
+
+procedure TFRM_Principal.InserirRetenesdergosPblicos1Click(Sender: TObject);
+begin
+ if importar1.Enabled then
+   MessageDlg('Dados não encontrados, importe o arquivo do SPED e tente novamente.',mtInformation,[mbok],0)
+ else
+   FRM_Lanca_Retencao.show;
+end;
+
+procedure TFRM_Principal.LocacaoTerraco1Click(Sender: TObject);
+begin
+  FRM_Terraco.ShowModal;
+end;
+
+procedure TFRM_Principal.LocacoesEquipamentos1Click(Sender: TObject);
+begin
+  FRM_Locacoes.ShowModal;
+end;
+
+procedure TFRM_Principal.OrgaosPublicosRetencao1Click(Sender: TObject);
+begin
+  FRM_Retencao.ShowModal;
+end;
+
+procedure TFRM_Principal.OrgosPblicos1Click(Sender: TObject);
+begin
+  FRM_Orgaos.ShowModal;
+end;
+
+procedure TFRM_Principal.Participantes1Click(Sender: TObject);
+begin
+   FRM_Participantes.ShowModal;
+end;
+
+procedure TFRM_Principal.PERSE1Click(Sender: TObject);
+begin
+ if importar1.Enabled then
+   MessageDlg('Dados não encontrados, importe o arquivo do SPED e tente novamente.',mtInformation,[mbok],0)
+ else
+   FRM_Perse.Show;
+
+end;
+
+procedure TFRM_Principal.Planilhas1Click(Sender: TObject);
+begin
+   FRM_Planilhas.ShowModal;
+end;
+
+procedure TFRM_Principal.ReceitasFinanceiras1Click(Sender: TObject);
+begin
+   FRM_ReceitasFin.ShowModal;
+end;
+
+procedure TFRM_Principal.Sair1Click(Sender: TObject);
+begin
+    Close;
+ end;
+
+end.

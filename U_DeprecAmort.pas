@@ -1,0 +1,214 @@
+﻿unit U_DeprecAmort;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.UITypes, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Data.DB, FireDAC.Stan.Intf,
+  FireDAC.Stan.Option, FireDAC.Stan.Param, FireDAC.Stan.Error, FireDAC.DatS,
+  FireDAC.Phys.Intf, FireDAC.DApt.Intf, FireDAC.Stan.Async, FireDAC.DApt,
+  FireDAC.Comp.Client, FireDAC.Comp.DataSet, Vcl.DBCtrls, Vcl.Grids,
+  Vcl.DBGrids, Vcl.ExtCtrls, Vcl.StdCtrls, Vcl.Mask, Vcl.Buttons, Vcl.ComCtrls,
+  Vcl.Menus;
+
+type
+  TFRM_DeprecAmort= class(TForm)
+    Panel1: TPanel;
+    DBGrid1: TDBGrid;
+    StatusBar1: TStatusBar;
+    Panel5: TPanel;
+    Label1: TLabel;
+    FDQ_MesRef: TFDQuery;
+    FDQ_MesRefChave: TFDAutoIncField;
+    FDQ_MesRefMes_Ref: TStringField;
+    CB_MesRef: TComboBox;
+    FDQ_DepAmor: TFDQuery;
+    DS1: TDataSource;
+    FDQ_DeprecAmort: TFDQuery;
+    FDTransaction1: TFDTransaction;
+    DS2: TDataSource;
+    FDUpdateSQL1: TFDUpdateSQL;
+    FDQ_DeprecAmortChave: TFDAutoIncField;
+    FDQ_DeprecAmortidDepAmor: TIntegerField;
+    FDQ_DeprecAmortidMesRef: TIntegerField;
+    FDQ_DeprecAmortPercentPis: TFloatField;
+    FDQ_DeprecAmortPercentCofins: TFloatField;
+    FDQ_DepAmorChave: TFDAutoIncField;
+    FDQ_DepAmorNome: TStringField;
+    FDQ_DeprecAmortDescricao: TStringField;
+    FDQ_DeprecAmortValorTotal: TBCDField;
+    FDQ_DeprecAmortRateio: TBCDField;
+    FDQ_DeprecAmortBaseCalculo: TBCDField;
+    FDQ_DeprecAmortValorPis: TBCDField;
+    FDQ_DeprecAmortValorCofins: TBCDField;
+    FDQ_DeprecAmortValorParcela: TBCDField;
+    procedure FormShow(Sender: TObject);
+    procedure CB_MesRefChange(Sender: TObject);
+    procedure FDQ_DeprecAmortAfterDelete(DataSet: TDataSet);
+    procedure FDQ_DeprecAmortAfterPost(DataSet: TDataSet);
+    procedure FDQ_DeprecAmortBaseCalculoChange(Sender: TField);
+    procedure FDQ_DeprecAmortBeforePost(DataSet: TDataSet);
+    procedure FDQ_DeprecAmortValorTotalChange(Sender: TField);
+    procedure FDQ_DeprecAmortRateioChange(Sender: TField);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  FRM_DeprecAmort: TFRM_DeprecAmort;
+
+implementation
+
+{$R *.dfm}
+
+uses U_DataModule;
+
+procedure TFRM_DeprecAmort.CB_MesRefChange(Sender: TObject);
+var
+  nValorTotal, nBaseTotal, nPisTotal, nCofinsTotal:double;
+begin
+   nValorTotal := 0.00;
+   nBaseTotal  := 0.00;
+   nPisTotal   := 0.00;
+   nCofinsTotal:= 0.00;
+   FDQ_MesRef.Locate('Mes_Ref',CB_MesRef.Text,[]);
+   FDQ_DeprecAmort.Close;
+   FDQ_DeprecAmort.SQL.Clear;
+   FDQ_DeprecAmort.SQL.Add('select * from DeprecicaoAmortizacao where idMesRef = '+FDQ_MesRefChave.AsString);
+   FDQ_DeprecAmort.Open;
+   FDQ_DeprecAmort.First;
+   while not FDQ_DeprecAmort.Eof do begin
+     nValorTotal := nValorTotal+FDQ_DeprecAmortValorTotal.Value;
+     nBaseTotal := nBaseTotal+FDQ_DeprecAmortBaseCalculo.Value;
+     nPisTotal := nPisTotal+FDQ_DeprecAmortValorPis.Value;
+     nCofinsTotal := nCofinsTotal+FDQ_DeprecAmortValorCofins.Value;
+     FDQ_DeprecAmort.Next;
+   end;
+   StatusBar1.Panels[0].Text := 'Valor Total: '+FormatFloat('R$ ##,###,##0.00', nValorTotal);
+   StatusBar1.Panels[1].Text := 'Base de Cálculo: '+FormatFloat('R$ ##,###,##0.00', nBaseTotal);
+   StatusBar1.Panels[2].Text := 'Total de PIS: '+FormatFloat('R$ ##,###,##0.00', nPisTotal);
+   StatusBar1.Panels[3].Text := 'Total de COFINS: '+FormatFloat('R$ ##,###,##0.00', nCofinsTotal);
+end;
+
+procedure TFRM_DeprecAmort.FDQ_DeprecAmortAfterDelete(DataSet: TDataSet);
+var
+  nValorTotal, nBaseTotal, nPisTotal, nCofinsTotal:double;
+begin
+   nValorTotal := 0.00;
+   nBaseTotal  := 0.00;
+   nPisTotal   := 0.00;
+   nCofinsTotal:= 0.00;
+   FDQ_DeprecAmort.First;
+   while not FDQ_DeprecAmort.Eof do begin
+     nValorTotal := nValorTotal+FDQ_DeprecAmortValorTotal.Value;
+     nBaseTotal := nBaseTotal+FDQ_DeprecAmortBaseCalculo.Value;
+     nPisTotal := nPisTotal+FDQ_DeprecAmortValorPis.Value;
+     nCofinsTotal := nCofinsTotal+FDQ_DeprecAmortValorCofins.Value;
+     FDQ_DeprecAmort.Next;
+   end;
+   StatusBar1.Panels[0].Text := 'Valor Total: '+FormatFloat('R$ ##,###,##0.00', nValorTotal);
+   StatusBar1.Panels[1].Text := 'Base de Cálculo: '+FormatFloat('R$ ##,###,##0.00', nBaseTotal);
+   StatusBar1.Panels[2].Text := 'Total de PIS: '+FormatFloat('R$ ##,###,##0.00', nPisTotal);
+   StatusBar1.Panels[3].Text := 'Total de COFINS: '+FormatFloat('R$ ##,###,##0.00', nCofinsTotal);
+end;
+
+procedure TFRM_DeprecAmort.FDQ_DeprecAmortAfterPost(DataSet: TDataSet);
+var
+  nValorTotal, nBaseTotal, nPisTotal, nCofinsTotal:double;
+begin
+   nValorTotal := 0.00;
+   nBaseTotal  := 0.00;
+   nPisTotal   := 0.00;
+   nCofinsTotal:= 0.00;
+   FDQ_DeprecAmort.First;
+   while not FDQ_DeprecAmort.Eof do begin
+     nValorTotal := nValorTotal+FDQ_DeprecAmortValorTotal.Value;
+     nBaseTotal := nBaseTotal+FDQ_DeprecAmortBaseCalculo.Value;
+     nPisTotal := nPisTotal+FDQ_DeprecAmortValorPis.Value;
+     nCofinsTotal := nCofinsTotal+FDQ_DeprecAmortValorCofins.Value;
+     FDQ_DeprecAmort.Next;
+   end;
+   StatusBar1.Panels[0].Text := 'Valor Total: '+FormatFloat('R$ ##,###,##0.00', nValorTotal);
+   StatusBar1.Panels[1].Text := 'Base de Cálculo: '+FormatFloat('R$ ##,###,##0.00', nBaseTotal);
+   StatusBar1.Panels[2].Text := 'Total de PIS: '+FormatFloat('R$ ##,###,##0.00', nPisTotal);
+   StatusBar1.Panels[3].Text := 'Total de COFINS: '+FormatFloat('R$ ##,###,##0.00', nCofinsTotal);
+end;
+
+procedure TFRM_DeprecAmort.FDQ_DeprecAmortBaseCalculoChange(Sender: TField);
+begin
+   with FDQ_DeprecAmort do begin
+      if (FDQ_DeprecAmortValorTotal.Value<>0) and (FDQ_DeprecAmortRateio.Value<>0) then begin
+        FDQ_DeprecAmortPercentPis.Value := 1.65;
+        FDQ_DeprecAmortPercentCofins.value := 7.6;
+        FDQ_DeprecAmortValorPis.Value := (FDQ_DeprecAmortBaseCalculo.Value*FDQ_DeprecAmortPercentPis.Value)/100;
+        FDQ_DeprecAmortValorCofins.Value := (FDQ_DeprecAmortBaseCalculo.Value*FDQ_DeprecAmortPercentCofins.Value)/100;
+        FDQ_DeprecAmortValorParcela.Value := (FDQ_DeprecAmortValorTotal.Value - FDQ_DeprecAmortBaseCalculo.Value);
+      end;
+   end;
+end;
+
+procedure TFRM_DeprecAmort.FDQ_DeprecAmortBeforePost(DataSet: TDataSet);
+begin
+  if FDQ_MesRef.Locate('Mes_Ref',CB_MesRef.Text,[]) then
+     FDQ_DeprecAmortidMesRef.Value := FDQ_MesRefChave.Value;
+end;
+
+procedure TFRM_DeprecAmort.FDQ_DeprecAmortRateioChange(Sender: TField);
+begin
+  if FDQ_DeprecAmortRateio.Value<>0 then
+    FDQ_DeprecAmortBaseCalculo.Value := (FDQ_DeprecAmortValorTotal.Value*FDQ_DeprecAmortRateio.Value)/100
+  Else begin
+    FDQ_DeprecAmortBaseCalculo.Clear;
+    FDQ_DeprecAmortValorParcela.Clear;
+  end;
+end;
+
+procedure TFRM_DeprecAmort.FDQ_DeprecAmortValorTotalChange(Sender: TField);
+begin
+  if FDQ_DeprecAmortRateio.Value<>0 then
+    FDQ_DeprecAmortBaseCalculo.Value := (FDQ_DeprecAmortValorTotal.Value*FDQ_DeprecAmortRateio.Value)/100
+  Else begin
+    FDQ_DeprecAmortBaseCalculo.Clear;
+    FDQ_DeprecAmortValorParcela.Clear;
+  end;
+end;
+
+procedure TFRM_DeprecAmort.FormShow(Sender: TObject);
+var
+  nValorTotal, nBaseTotal, nPisTotal, nCofinsTotal:double;
+begin
+   nValorTotal := 0.00;
+   nBaseTotal  := 0.00;
+   nPisTotal   := 0.00;
+   nCofinsTotal:= 0.00;
+   CB_MesRef.Items.Clear;
+   FDQ_MesRef.Refresh;
+   FDQ_MesRef.First;
+   while not FDQ_Mesref.Eof do begin
+     CB_MesRef.Items.Add(FDQ_MesRefMes_Ref.AsString);
+     FDQ_MesRef.Next;
+   end;
+   CB_MesRef.ItemIndex := (CB_MesRef.Items.Count-1);
+   FDQ_MesRef.Locate('Mes_Ref',CB_MesRef.Text,[]);
+   FDQ_DeprecAmort.Close;
+   FDQ_DeprecAmort.SQL.Clear;
+   FDQ_DeprecAmort.SQL.Add('select * from DeprecicaoAmortizacao where idMesRef = '+FDQ_MesRefChave.AsString);
+   FDQ_DeprecAmort.Open;
+   FDQ_DeprecAmort.First;
+   while not FDQ_DeprecAmort.Eof do begin
+     nValorTotal := nValorTotal+FDQ_DeprecAmortValorTotal.Value;
+     nBaseTotal := nBaseTotal+FDQ_DeprecAmortBaseCalculo.Value;
+     nPisTotal := nPisTotal+FDQ_DeprecAmortValorPis.Value;
+     nCofinsTotal := nCofinsTotal+FDQ_DeprecAmortValorCofins.Value;
+     FDQ_DeprecAmort.Next;
+   end;
+   StatusBar1.Panels[0].Text := 'Valor Total: '+FormatFloat('R$ ##,###,##0.00', nValorTotal);
+   StatusBar1.Panels[1].Text := 'Base de Cálculo: '+FormatFloat('R$ ##,###,##0.00', nBaseTotal);
+   StatusBar1.Panels[2].Text := 'Total de PIS: '+FormatFloat('R$ ##,###,##0.00', nPisTotal);
+   StatusBar1.Panels[3].Text := 'Total de COFINS: '+FormatFloat('R$ ##,###,##0.00', nCofinsTotal);
+   FDQ_DepAmor.Refresh;
+end;
+
+end.

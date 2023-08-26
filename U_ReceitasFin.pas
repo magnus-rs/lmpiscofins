@@ -1,0 +1,201 @@
+﻿unit U_ReceitasFin;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.UITypes, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Data.DB, FireDAC.Stan.Intf,
+  FireDAC.Stan.Option, FireDAC.Stan.Param, FireDAC.Stan.Error, FireDAC.DatS,
+  FireDAC.Phys.Intf, FireDAC.DApt.Intf, FireDAC.Stan.Async, FireDAC.DApt,
+  FireDAC.Comp.Client, FireDAC.Comp.DataSet, Vcl.DBCtrls, Vcl.Grids,
+  Vcl.DBGrids, Vcl.ExtCtrls, Vcl.StdCtrls, Vcl.Mask, Vcl.Buttons, Vcl.ComCtrls,
+  Vcl.Menus;
+
+type
+  TFRM_ReceitasFin= class(TForm)
+    Panel1: TPanel;
+    DBGrid1: TDBGrid;
+    StatusBar1: TStatusBar;
+    Panel5: TPanel;
+    Label1: TLabel;
+    FDQ_MesRef: TFDQuery;
+    FDQ_MesRefChave: TFDAutoIncField;
+    FDQ_MesRefMes_Ref: TStringField;
+    CB_MesRef: TComboBox;
+    FDQ_ContaCTB: TFDQuery;
+    FDQ_ReceitasFin: TFDQuery;
+    DS1: TDataSource;
+    FDTransaction1: TFDTransaction;
+    DS2: TDataSource;
+    FDUpdateSQL1: TFDUpdateSQL;
+    FDQ_ContaCTBChave: TFDAutoIncField;
+    FDQ_ContaCTBCodigo: TStringField;
+    FDQ_ContaCTBNome: TStringField;
+    FDQ_ContaCTBTipo: TStringField;
+    FDQ_ContaCTBNatureza: TStringField;
+    FDQ_ContaCTBNivel: TStringField;
+    FDQ_ReceitasFinChave: TFDAutoIncField;
+    FDQ_ReceitasFinidMesRef: TIntegerField;
+    FDQ_ReceitasFinidCodCTB: TStringField;
+    FDQ_ReceitasFinPercentPis: TFloatField;
+    FDQ_ReceitasFinPercentCofins: TFloatField;
+    FDQ_ReceitasFinNomedaConta: TStringField;
+    FDQ_ContaCTBData_Alt: TSQLTimeStampField;
+    FDQ_ReceitasFinValorTotal: TBCDField;
+    FDQ_ReceitasFinBaseCalculo: TBCDField;
+    FDQ_ReceitasFinValorPis: TBCDField;
+    FDQ_ReceitasFinValorCofins: TBCDField;
+    procedure FormShow(Sender: TObject);
+    procedure CB_MesRefChange(Sender: TObject);
+    procedure FDQ_ReceitasFinValorTotalChange(Sender: TField);
+    procedure FDQ_ReceitasFinBeforePost(DataSet: TDataSet);
+    procedure FDQ_ReceitasFinAfterDelete(DataSet: TDataSet);
+    procedure FDQ_ReceitasFinAfterPost(DataSet: TDataSet);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  FRM_ReceitasFin: TFRM_ReceitasFin;
+
+implementation
+
+{$R *.dfm}
+
+uses U_DataModule;
+
+procedure TFRM_ReceitasFin.CB_MesRefChange(Sender: TObject);
+var
+  nValorTotal, nBaseTotal, nPisTotal, nCofinsTotal:double;
+begin
+   nValorTotal := 0.00;
+   nBaseTotal  := 0.00;
+   nPisTotal   := 0.00;
+   nCofinsTotal:= 0.00;
+   FDQ_MesRef.Locate('Mes_Ref',CB_MesRef.Text,[]);
+   FDQ_ReceitasFin.Close;
+   FDQ_ReceitasFin.SQL.Clear;
+   FDQ_ReceitasFin.SQL.Add('select * from ReceitasFin where idMesRef = '+FDQ_MesRefChave.AsString);
+   FDQ_ReceitasFin.Open;
+   FDQ_ReceitasFin.First;
+   while not FDQ_ReceitasFin.Eof do begin
+     nValorTotal := nValorTotal+FDQ_ReceitasFinValorTotal.Value;
+     nBaseTotal := nBaseTotal+FDQ_ReceitasFinBaseCalculo.Value;
+     nPisTotal := nPisTotal+FDQ_ReceitasFinValorPis.Value;
+     nCofinsTotal := nCofinsTotal+FDQ_ReceitasFinValorCofins.Value;
+     FDQ_ReceitasFin.Next;
+   end;
+   StatusBar1.Panels[0].Text := 'Valor Total: '+FormatFloat('R$ ##,###,##0.00', nValorTotal);
+   StatusBar1.Panels[1].Text := 'Base de Cálculo: '+FormatFloat('R$ ##,###,##0.00', nBaseTotal);
+   StatusBar1.Panels[2].Text := 'Total de PIS: '+FormatFloat('R$ ##,###,##0.00', nPisTotal);
+   StatusBar1.Panels[3].Text := 'Total de COFINS: '+FormatFloat('R$ ##,###,##0.00', nCofinsTotal);
+end;
+
+procedure TFRM_ReceitasFin.FDQ_ReceitasFinAfterDelete(DataSet: TDataSet);
+var
+  nValorTotal, nBaseTotal, nPisTotal, nCofinsTotal:double;
+begin
+   nValorTotal := 0.00;
+   nBaseTotal  := 0.00;
+   nPisTotal   := 0.00;
+   nCofinsTotal:= 0.00;
+   FDQ_MesRef.Locate('Mes_Ref',CB_MesRef.Text,[]);
+   FDQ_ReceitasFin.Close;
+   FDQ_ReceitasFin.SQL.Clear;
+   FDQ_ReceitasFin.SQL.Add('select * from ReceitasFin where idMesRef = '+FDQ_MesRefChave.AsString);
+   FDQ_ReceitasFin.Open;
+   FDQ_ReceitasFin.First;
+   while not FDQ_ReceitasFin.Eof do begin
+     nValorTotal := nValorTotal+FDQ_ReceitasFinValorTotal.Value;
+     nBaseTotal := nBaseTotal+FDQ_ReceitasFinBaseCalculo.Value;
+     nPisTotal := nPisTotal+FDQ_ReceitasFinValorPis.Value;
+     nCofinsTotal := nCofinsTotal+FDQ_ReceitasFinValorCofins.Value;
+     FDQ_ReceitasFin.Next;
+   end;
+   StatusBar1.Panels[0].Text := 'Valor Total: '+FormatFloat('R$ ##,###,##0.00', nValorTotal);
+   StatusBar1.Panels[1].Text := 'Base de Cálculo: '+FormatFloat('R$ ##,###,##0.00', nBaseTotal);
+   StatusBar1.Panels[2].Text := 'Total de PIS: '+FormatFloat('R$ ##,###,##0.00', nPisTotal);
+   StatusBar1.Panels[3].Text := 'Total de COFINS: '+FormatFloat('R$ ##,###,##0.00', nCofinsTotal);
+end;
+
+procedure TFRM_ReceitasFin.FDQ_ReceitasFinAfterPost(DataSet: TDataSet);
+var
+  nValorTotal, nBaseTotal, nPisTotal, nCofinsTotal:double;
+begin
+   nValorTotal := 0.00;
+   nBaseTotal  := 0.00;
+   nPisTotal   := 0.00;
+   nCofinsTotal:= 0.00;
+   FDQ_MesRef.Locate('Mes_Ref',CB_MesRef.Text,[]);
+   FDQ_ReceitasFin.Close;
+   FDQ_ReceitasFin.SQL.Clear;
+   FDQ_ReceitasFin.SQL.Add('select * from ReceitasFin where idMesRef = '+FDQ_MesRefChave.AsString);
+   FDQ_ReceitasFin.Open;
+   FDQ_ReceitasFin.First;
+   while not FDQ_ReceitasFin.Eof do begin
+     nValorTotal := nValorTotal+FDQ_ReceitasFinValorTotal.Value;
+     nBaseTotal := nBaseTotal+FDQ_ReceitasFinBaseCalculo.Value;
+     nPisTotal := nPisTotal+FDQ_ReceitasFinValorPis.Value;
+     nCofinsTotal := nCofinsTotal+FDQ_ReceitasFinValorCofins.Value;
+     FDQ_ReceitasFin.Next;
+   end;
+   StatusBar1.Panels[0].Text := 'Valor Total: '+FormatFloat('R$ ##,###,##0.00', nValorTotal);
+   StatusBar1.Panels[1].Text := 'Base de Cálculo: '+FormatFloat('R$ ##,###,##0.00', nBaseTotal);
+   StatusBar1.Panels[2].Text := 'Total de PIS: '+FormatFloat('R$ ##,###,##0.00', nPisTotal);
+   StatusBar1.Panels[3].Text := 'Total de COFINS: '+FormatFloat('R$ ##,###,##0.00', nCofinsTotal);
+end;
+
+procedure TFRM_ReceitasFin.FDQ_ReceitasFinBeforePost(DataSet: TDataSet);
+begin
+  FDQ_MesRef.Locate('Mes_Ref',CB_MesRef.Text,[]);
+  FDQ_ReceitasFinidMesRef.Value := FDQ_MesRefChave.Value;
+end;
+
+procedure TFRM_ReceitasFin.FDQ_ReceitasFinValorTotalChange(Sender: TField);
+begin
+   FDQ_ReceitasFinBaseCalculo.Value := FDQ_ReceitasFinValorTotal.Value;
+   FDQ_ReceitasFinPercentPis.Value := 0.65;
+   FDQ_ReceitasFinPercentCofins.Value := 4.0;
+   FDQ_ReceitasFinValorPis.Value := ((FDQ_ReceitasFinBaseCalculo.Value*0.65)/100);
+   FDQ_ReceitasFinValorCofins.Value := ((FDQ_ReceitasFinBaseCalculo.Value*4.0)/100);
+end;
+
+procedure TFRM_ReceitasFin.FormShow(Sender: TObject);
+var
+  nValorTotal, nBaseTotal, nPisTotal, nCofinsTotal:double;
+begin
+  nValorTotal := 0.00;
+  nBaseTotal  := 0.00;
+  nPisTotal   := 0.00;
+  nCofinsTotal:= 0.00;
+  CB_MesRef.Items.Clear;
+  FDQ_MesRef.Refresh;
+  FDQ_MesRef.First;
+  while not FDQ_Mesref.Eof do begin
+    CB_MesRef.Items.Add(FDQ_MesRefMes_Ref.AsString);
+    FDQ_MesRef.Next;
+  end;
+  CB_MesRef.ItemIndex := (CB_MesRef.Items.Count-1);
+  FDQ_MesRef.Locate('Mes_Ref',CB_MesRef.Text,[]);
+  FDQ_ReceitasFin.Close;
+  FDQ_ReceitasFin.SQL.Clear;
+  FDQ_ReceitasFin.SQL.Add('select * from ReceitasFin where idMesRef = '+FDQ_MesRefChave.AsString);
+  FDQ_ReceitasFin.Open;
+  FDQ_ReceitasFin.First;
+  while not FDQ_ReceitasFin.Eof do begin
+    nValorTotal := nValorTotal+FDQ_ReceitasFinValorTotal.Value;
+    nBaseTotal := nBaseTotal+FDQ_ReceitasFinBaseCalculo.Value;
+    nPisTotal := nPisTotal+FDQ_ReceitasFinValorPis.Value;
+    nCofinsTotal := nCofinsTotal+FDQ_ReceitasFinValorCofins.Value;
+    FDQ_ReceitasFin.Next;
+  end;
+  StatusBar1.Panels[0].Text := 'Valor Total: '+FormatFloat('R$ ##,###,##0.00', nValorTotal);
+  StatusBar1.Panels[1].Text := 'Base de Cálculo: '+FormatFloat('R$ ##,###,##0.00', nBaseTotal);
+  StatusBar1.Panels[2].Text := 'Total de PIS: '+FormatFloat('R$ ##,###,##0.00', nPisTotal);
+  StatusBar1.Panels[3].Text := 'Total de COFINS: '+FormatFloat('R$ ##,###,##0.00', nCofinsTotal);
+  FDQ_ContaCTB.Refresh;
+ end;
+
+end.

@@ -1,0 +1,309 @@
+object FRM_DeprecAmort: TFRM_DeprecAmort
+  Left = 0
+  Top = 0
+  BorderStyle = bsDialog
+  Caption = 'Deprecia'#231#227'o e Amortiza'#231#227'o (CST50)'
+  ClientHeight = 167
+  ClientWidth = 908
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  OldCreateOrder = False
+  Position = poDesktopCenter
+  OnShow = FormShow
+  PixelsPerInch = 96
+  TextHeight = 13
+  object Panel1: TPanel
+    Left = 0
+    Top = 0
+    Width = 908
+    Height = 167
+    Align = alClient
+    BevelOuter = bvNone
+    BorderStyle = bsSingle
+    Ctl3D = False
+    ParentCtl3D = False
+    TabOrder = 0
+    object DBGrid1: TDBGrid
+      Left = 0
+      Top = 25
+      Width = 906
+      Height = 121
+      Align = alClient
+      DataSource = DS2
+      TabOrder = 0
+      TitleFont.Charset = DEFAULT_CHARSET
+      TitleFont.Color = clWindowText
+      TitleFont.Height = -11
+      TitleFont.Name = 'Tahoma'
+      TitleFont.Style = []
+      Columns = <
+        item
+          Expanded = False
+          FieldName = 'Descricao'
+          Width = 210
+          Visible = True
+        end
+        item
+          Expanded = False
+          FieldName = 'ValorTotal'
+          Width = 100
+          Visible = True
+        end
+        item
+          Expanded = False
+          FieldName = 'Rateio'
+          Width = 50
+          Visible = True
+        end
+        item
+          Expanded = False
+          FieldName = 'BaseCalculo'
+          Width = 100
+          Visible = True
+        end
+        item
+          Expanded = False
+          FieldName = 'PercentPis'
+          Width = 50
+          Visible = True
+        end
+        item
+          Expanded = False
+          FieldName = 'ValorPis'
+          Width = 100
+          Visible = True
+        end
+        item
+          Expanded = False
+          FieldName = 'PercentCofins'
+          Width = 50
+          Visible = True
+        end
+        item
+          Expanded = False
+          FieldName = 'ValorCofins'
+          Width = 100
+          Visible = True
+        end
+        item
+          Expanded = False
+          FieldName = 'ValorParcela'
+          Width = 100
+          Visible = True
+        end>
+    end
+    object StatusBar1: TStatusBar
+      Left = 0
+      Top = 146
+      Width = 906
+      Height = 19
+      Panels = <
+        item
+          Width = 150
+        end
+        item
+          Alignment = taCenter
+          Width = 200
+        end
+        item
+          Alignment = taCenter
+          Width = 200
+        end
+        item
+          Alignment = taCenter
+          Width = 200
+        end>
+    end
+    object Panel5: TPanel
+      Left = 0
+      Top = 0
+      Width = 906
+      Height = 25
+      Align = alTop
+      Alignment = taLeftJustify
+      BevelOuter = bvNone
+      TabOrder = 2
+      object Label1: TLabel
+        Left = 16
+        Top = 5
+        Width = 93
+        Height = 13
+        Caption = 'Mes de Referencia:'
+      end
+      object CB_MesRef: TComboBox
+        Left = 120
+        Top = 2
+        Width = 145
+        Height = 21
+        TabOrder = 0
+        Text = 'CB_MesRef'
+        OnChange = CB_MesRefChange
+      end
+    end
+  end
+  object FDQ_MesRef: TFDQuery
+    Active = True
+    Connection = DataModule1.FDConnection1
+    SQL.Strings = (
+      'select * from Planilhas')
+    Left = 32
+    Top = 72
+    object FDQ_MesRefChave: TFDAutoIncField
+      FieldName = 'Chave'
+      Origin = 'Chave'
+      ProviderFlags = [pfInWhere, pfInKey]
+      ReadOnly = True
+    end
+    object FDQ_MesRefMes_Ref: TStringField
+      FieldName = 'Mes_Ref'
+      Origin = 'Mes_Ref'
+      Required = True
+      EditMask = '!99/0000;0;_'
+      Size = 6
+    end
+  end
+  object FDQ_DepAmor: TFDQuery
+    Active = True
+    Connection = DataModule1.FDConnection1
+    SQL.Strings = (
+      'select * from DepAmor')
+    Left = 209
+    Top = 72
+    object FDQ_DepAmorChave: TFDAutoIncField
+      FieldName = 'Chave'
+      Origin = 'Chave'
+      ProviderFlags = [pfInWhere, pfInKey]
+      ReadOnly = True
+    end
+    object FDQ_DepAmorNome: TStringField
+      FieldName = 'Nome'
+      Origin = 'Nome'
+      Required = True
+      Size = 50
+    end
+  end
+  object DS1: TDataSource
+    DataSet = FDQ_DepAmor
+    Left = 273
+    Top = 72
+  end
+  object FDQ_DeprecAmort: TFDQuery
+    Active = True
+    BeforePost = FDQ_DeprecAmortBeforePost
+    AfterPost = FDQ_DeprecAmortAfterPost
+    AfterDelete = FDQ_DeprecAmortAfterDelete
+    Connection = DataModule1.FDConnection1
+    Transaction = FDTransaction1
+    UpdateTransaction = FDTransaction1
+    UpdateOptions.AutoIncFields = 'Chave'
+    UpdateObject = FDUpdateSQL1
+    SQL.Strings = (
+      'select * from DeprecicaoAmortizacao')
+    Left = 552
+    Top = 82
+    object FDQ_DeprecAmortChave: TFDAutoIncField
+      FieldName = 'Chave'
+      Origin = 'Chave'
+      ProviderFlags = [pfInWhere, pfInKey]
+      ReadOnly = True
+    end
+    object FDQ_DeprecAmortidDepAmor: TIntegerField
+      FieldName = 'idDepAmor'
+      Origin = 'idDepAmor'
+      Required = True
+    end
+    object FDQ_DeprecAmortidMesRef: TIntegerField
+      FieldName = 'idMesRef'
+      Origin = 'idMesRef'
+      Required = True
+    end
+    object FDQ_DeprecAmortDescricao: TStringField
+      DisplayLabel = 'Descri'#231#227'o'
+      FieldKind = fkLookup
+      FieldName = 'Descricao'
+      LookupDataSet = FDQ_DepAmor
+      LookupKeyFields = 'Chave'
+      LookupResultField = 'Nome'
+      KeyFields = 'idDepAmor'
+      Size = 50
+      Lookup = True
+    end
+    object FDQ_DeprecAmortValorTotal: TFloatField
+      DisplayLabel = 'Valor Total'
+      FieldName = 'ValorTotal'
+      Origin = 'ValorTotal'
+      Required = True
+      OnChange = FDQ_DeprecAmortValorTotalChange
+      currency = True
+    end
+    object FDQ_DeprecAmortRateio: TFloatField
+      DisplayLabel = '% Rateio'
+      FieldName = 'Rateio'
+      Origin = 'Rateio'
+      Required = True
+      OnChange = FDQ_DeprecAmortRateioChange
+    end
+    object FDQ_DeprecAmortBaseCalculo: TFloatField
+      DisplayLabel = 'B'#225'se de C'#225'lculo'
+      FieldName = 'BaseCalculo'
+      Origin = 'BaseCalculo'
+      Required = True
+      OnChange = FDQ_DeprecAmortBaseCalculoChange
+      currency = True
+    end
+    object FDQ_DeprecAmortPercentPis: TFloatField
+      DisplayLabel = '% Pis'
+      FieldName = 'PercentPis'
+      Origin = 'PercentPis'
+      Required = True
+      DisplayFormat = '% #0.00'
+    end
+    object FDQ_DeprecAmortValorPis: TFloatField
+      DisplayLabel = 'Valor de PIS'
+      FieldName = 'ValorPis'
+      Origin = 'ValorPis'
+      Required = True
+      currency = True
+    end
+    object FDQ_DeprecAmortPercentCofins: TFloatField
+      DisplayLabel = '% Cofins'
+      FieldName = 'PercentCofins'
+      Origin = 'PercentCofins'
+      Required = True
+      DisplayFormat = '% #0.00'
+    end
+    object FDQ_DeprecAmortValorCofins: TFloatField
+      DisplayLabel = 'Valor de COFINS'
+      FieldName = 'ValorCofins'
+      Origin = 'ValorCofins'
+      Required = True
+      currency = True
+    end
+    object FDQ_DeprecAmortValorParcela: TFloatField
+      DisplayLabel = 'Valor da Parcela'
+      FieldName = 'ValorParcela'
+      Origin = 'ValorParcela'
+      Required = True
+      currency = True
+    end
+  end
+  object FDTransaction1: TFDTransaction
+    Connection = DataModule1.FDConnection1
+    Left = 640
+    Top = 82
+  end
+  object DS2: TDataSource
+    DataSet = FDQ_DeprecAmort
+    Left = 696
+    Top = 81
+  end
+  object FDUpdateSQL1: TFDUpdateSQL
+    Connection = DataModule1.FDConnection1
+    Left = 465
+    Top = 82
+  end
+end
